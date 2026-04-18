@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Previsão de Faturamento 2026 — MP Advogados</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0d0d0d; --card:#161616; --surface:#1e1e1e; --border:#2a2a2a;
+  --fg:#f0ebe3; --muted:#7a7069;
+  --real:#3b82f6; --real-bg:#0f1f3566;
+  --mdfl:#20c997; --mdfl-bg:#0e1f1866;
+  --gold:#d97706; --warn:#f59e0b; --danger:#ef4444; --purple:#8b5cf6;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.5;}
+h1,h2,h3{font-family:'Manrope','Inter',system-ui;font-weight:700;}
+
+/* HEADER */
+.hdr{padding:28px 40px 24px;border-bottom:1px solid var(--border);}
+.hdr-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.hdr h1{font-size:24px;color:var(--fg);}
+.hdr p{font-size:12px;color:var(--muted);}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px;}
+.dot-real{background:var(--real);} .dot-mdfl{background:var(--mdfl);}
+
+/* TOTAIS HERO */
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:0;}
+.hero-box{padding:28px 40px;display:flex;flex-direction:column;gap:6px;}
+.hero-box.r{background:linear-gradient(135deg,#0d0d1a,#0d0d0d);border-bottom:2px solid var(--real);}
+.hero-box.m{background:linear-gradient(135deg,#0d1a15,#0d0d0d);border-bottom:2px solid var(--mdfl);}
+.hero-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.hero-label.r{color:var(--real);} .hero-label.m{color:var(--mdfl);}
+.hero-value{font-family:'Manrope',system-ui;font-size:42px;font-weight:900;line-height:1;}
+.hero-value.r{color:var(--real);} .hero-value.m{color:var(--mdfl);}
+.hero-sub{font-size:12px;color:var(--muted);}
+.hero-diff{font-size:13px;font-weight:700;color:var(--gold);}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:50;background:#0d0d0ddd;backdrop-filter:blur(8px);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;}
+.nv{padding:10px 18px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;}
+.nv:hover{color:var(--fg);} .nv.on{color:var(--mdfl);border-bottom-color:var(--mdfl);}
+
+/* SECTIONS */
+.sec{padding:28px 40px;border-bottom:1px solid var(--border);}
+.sec-t{font-size:16px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.sec-t::before{content:'';width:3px;height:18px;background:var(--mdfl);border-radius:2px;display:block;}
+
+/* MESES GRID */
+.months{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;}
+.mbox.peak{border-color:var(--gold);}
+.mbox-name{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.mbox-r{font-size:14px;font-weight:700;color:var(--real);margin-bottom:4px;}
+.mbox-m{font-family:'Manrope',system-ui;font-size:18px;font-weight:800;color:var(--mdfl);}
+.mbox-diff{font-size:10px;color:var(--gold);margin-top:4px;}
+.mbox-bar{height:3px;border-radius:2px;margin-top:8px;}
+.mbox-bar.r{background:var(--real);}
+.mbox-bar.m{background:var(--mdfl);}
+.mbox-tri{font-size:9px;color:var(--muted);margin-top:4px;padding-top:4px;border-top:1px solid var(--border);}
+
+/* CHART CARD */
+.cc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.cc-t{font-size:13px;font-weight:600;margin-bottom:14px;}
+.ch{position:relative;height:280px;}
+.ch-sm{position:relative;height:200px;}
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:16px;}
+
+/* FONTES */
+.fonte-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.fonte-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.fonte-icon{font-size:20px;margin-bottom:6px;}
+.fonte-name{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+.fonte-val{font-size:20px;font-weight:800;}
+.fonte-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* DECISOES */
+.dec-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;margin-bottom:16px;}
+.dec-cell{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.dec-cell.hist{border-color:#2a2a2a;}
+.dec-cell.proj{border-color:var(--mdfl)33;}
+.dec-cell.proj-hot{border-color:var(--gold);}
+.dc-m{font-size:10px;color:var(--muted);margin-bottom:3px;}
+.dc-v{font-size:18px;font-weight:800;}
+.dc-v.g{color:var(--mdfl);} .dc-v.go{color:var(--gold);} .dc-v.mu{color:var(--muted);}
+.dc-tag{font-size:9px;color:var(--muted);margin-top:2px;}
+.dc-arr{color:var(--mdfl);font-size:10px;font-weight:700;}
+
+/* INSIGHT */
+.ins{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--mdfl);border-radius:8px;padding:14px;margin-bottom:10px;}
+.ins.gold{border-left-color:var(--gold);} .ins.info{border-left-color:var(--real);} .ins.warn{border-left-color:var(--warn);}
+.ins-t{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.ins-b{font-size:13px;line-height:1.65;}
+
+/* CUMUL */
+.cumul-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:16px;}
+.cbox{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.cbox-l{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.cbox-v{font-family:'Manrope',system-ui;font-size:22px;font-weight:800;}
+
+/* PREMISSAS */
+.prem{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.prem-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.prem-t{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+.prem-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1f1f1f;font-size:12px;}
+.prem-row:last-child{border-bottom:none;}
+.prem-val{font-weight:700;}
+
+/* LEGEND */
+.leg{display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+.leg-dot{width:12px;height:12px;border-radius:3px;}
+
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;}
+  .months{grid-template-columns:repeat(4,1fr);}
+  .fonte-grid{grid-template-columns:repeat(2,1fr);}
+  .sec{padding:20px 16px;}
+  .hero-box{padding:20px 16px;}
+  .prem{grid-template-columns:1fr;}
+  .charts-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div style="width:36px;height:36px;background:var(--mdfl);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;">💰</div>
+    <div>
+      <h1>Previsão de Faturamento — Maio a Dezembro 2026</h1>
+      <p>Baseado nos processos já em andamento + evolução real de decisões · Fator crescimento calculado do último trimestre</p>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--muted);">
+    <span><span class="dot dot-real"></span>Cenário Realista — crescimento orgânico, sem novos processos</span>
+    &nbsp;&nbsp;
+    <span><span class="dot dot-mdfl"></span>Fator MDFlow — +50% médio pela operação com novo sistema</span>
+  </div>
+</div>
+
+<!-- HERO TOTAIS -->
+<div class="hero">
+  <div class="hero-box r">
+    <div class="hero-label r">Cenário Realista</div>
+    <div class="hero-value r">R$ 3,13M</div>
+    <div class="hero-sub">Maio a Dezembro 2026 · apenas processos em andamento</div>
+    <div class="hero-diff">Crescimento médio: +10%/mês</div>
+  </div>
+  <div class="hero-box m">
+    <div class="hero-label m">Fator MDFlow ⚡</div>
+    <div class="hero-value m">R$ 4,92M</div>
+    <div class="hero-sub">Mesmo pipeline + aceleração MDFlow (+50% médio Jun–Dez)</div>
+    <div class="hero-diff">+ R$ 1,79M a mais que o realista</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nv on" onclick="go('meses')">Mês a Mês</div>
+  <div class="nv" onclick="go('grafico')">Gráficos</div>
+  <div class="nv" onclick="go('decisoes')">Motor: Decisões</div>
+  <div class="nv" onclick="go('fontes')">De Onde Vem</div>
+  <div class="nv" onclick="go('acumulado')">Acumulado</div>
+  <div class="nv" onclick="go('premissas')">Premissas</div>
+</nav>
+
+<!-- MÊS A MÊS -->
+<section class="sec" id="meses">
+  <div class="sec-t">Previsão Mês a Mês</div>
+
+  <div class="leg">
+    <div class="leg-item"><div class="leg-dot" style="background:var(--real);"></div>Realista</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--mdfl);"></div>Fator MDFlow</div>
+    <div class="leg-item" style="font-size:11px;">· Jun–Set: crescimento conservador (+8–10%/mês decisões) · Out–Dez: agressivo (+13%/mês)</div>
+  </div>
+
+  <div class="months">
+    <div class="mbox">
+      <div class="mbox-name">Maio</div>
+      <div class="mbox-r">R$ 344K</div>
+      <div class="mbox-m">R$ 344K</div>
+      <div class="mbox-diff">Igual — rampa iniciando</div>
+      <div class="mbox-bar r" style="width:55%;margin:8px auto 0;"></div>
+      <div class="mbox-tri">Pipeline alto</div>
+    </div>
+    <div class="mbox">
+      <div class="mbox-name">Junho</div>
+      <div class="mbox-r">R$ 352K</div>
+      <div class="mbox-m">R$ 457K</div>
+      <div class="mbox-diff">+30% MDFlow</div>
+      <div class="mbox-bar m" style="width:60%;margin:8px auto 0;"></div>
+      <div class="mbox-tri">CS + decisões Fev</div>
+    </div>
+    <div class="mbox">
+      <div class="mbox-name">Julho</div>
+      <div class="mbox-r">R$ 370K</div>
+      <div class="mbox-m">R$ 537K</div>
+      <div class="mbox-diff">+45% MDFlow</div>
+      <div class="mbox-bar m" style="width:65%;margin:8px auto 0;"></div>
+      <div class="mbox-tri">Decisões Abr chegando</div>
+    </div>
+    <div class="mbox">
+      <div class="mbox-name">Agosto</div>
+      <div class="mbox-r">R$ 415K</div>
+      <div class="mbox-m">R$ 643K</div>
+      <div class="mbox-diff">+55% MDFlow</div>
+      <div class="mbox-bar m" style="width:72%;margin:8px auto 0;"></div>
+      <div class="mbox-tri">Crescimento decisões</div>
+    </div>
+    <div class="mbox">
+      <div class="mbox-name">Setembro</div>
+      <div class="mbox-r">R$ 455K</div>
+      <div class="mbox-m">R$ 728K</div>
+      <div class="mbox-diff">+60% MDFlow</div>
+      <div class="mbox-bar m" style="width:78%;margin:8px auto 0;"></div>
+      <div class="mbox-tri">Acordos acelerando</div>
+    </div>
+    <div class="mbox">
+      <div class="mbox-name">Outubro</div>
+      <div class="mbox-r">R$ 510K</div>
+      <div class="mbox-m">R$ 867K</div>
+      <div class="mbox-diff">+70% MDFlow</div>
+      <div class="mbox-bar m" style="width:85%;margin:8px auto 0;"></div>
+      <div class="mbox-tri" style="color:var(--gold);">Fase agressiva ↑</div>
+    </div>
+    <div class="mbox peak">
+      <div class="mbox-name">Novembro</div>
+      <div class="mbox-r">R$ 575K</div>
+      <div class="mbox-m">R$ 1.035K</div>
+      <div class="mbox-diff" style="color:var(--gold);">+80% · R$1M+</div>
+      <div class="mbox-bar m" style="width:93%;margin:8px auto 0;"></div>
+      <div class="mbox-tri" style="color:var(--gold);">Primeiro R$1M</div>
+    </div>
+    <div class="mbox peak">
+      <div class="mbox-name">Dezembro</div>
+      <div class="mbox-r">R$ 640K</div>
+      <div class="mbox-m">R$ 1.216K</div>
+      <div class="mbox-diff" style="color:var(--gold);">+90% MDFlow</div>
+      <div class="mbox-bar m" style="width:100%;margin:8px auto 0;"></div>
+      <div class="mbox-tri" style="color:var(--gold);">Melhor mês</div>
+    </div>
+  </div>
+
+  <!-- Totais por trimestre -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px;">
+    <div class="cbox" style="border-color:#1f1f35;">
+      <div class="cbox-l">Q2 — Maio + Junho</div>
+      <div class="cbox-v" style="color:var(--real);">R$ 696K</div>
+      <div style="font-size:11px;color:var(--mdfl);margin-top:2px;">MDFlow: R$ 801K</div>
+    </div>
+    <div class="cbox" style="border-color:#1f2a1f;">
+      <div class="cbox-l">Q3 — Jul · Ago · Set</div>
+      <div class="cbox-v" style="color:var(--real);">R$ 1.240K</div>
+      <div style="font-size:11px;color:var(--mdfl);margin-top:2px;">MDFlow: R$ 1.908K</div>
+    </div>
+    <div class="cbox" style="border-color:var(--gold)33;">
+      <div class="cbox-l">Q4 — Out · Nov · Dez</div>
+      <div class="cbox-v" style="color:var(--real);">R$ 1.725K</div>
+      <div style="font-size:11px;color:var(--gold);margin-top:2px;">MDFlow: R$ 3.118K</div>
+    </div>
+  </div>
+
+  <div class="ins gold" style="margin-top:14px;">
+    <div class="ins-t">Por que Q4 é tão maior?</div>
+    <div class="ins-b">Em outubro começa a entrar no caixa o retorno das decisões de <strong>junho de 2026</strong> — o primeiro mês com MDFlow em plena velocidade. Com 2.000 processos distribuídos/mês e ciclo médio de 7 meses, o efeito de escala começa a aparecer. Além disso, processos distribuídos em junho geram acordos rápidos já em agosto/setembro, antecipando receita.</div>
+  </div>
+</section>
+
+<!-- GRÁFICOS -->
+<section class="sec" id="grafico">
+  <div class="sec-t">Comparativo Visual dos Dois Cenários</div>
+
+  <div class="cc" style="margin-bottom:16px;">
+    <div class="cc-t">Faturamento Mensal — Realista vs Fator MDFlow (R$)</div>
+    <div class="ch">
+      <canvas id="chartBars"></canvas>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="cc">
+      <div class="cc-t">Curva de Crescimento — Histórico + Projeção</div>
+      <div class="ch">
+        <canvas id="chartCurva"></canvas>
+      </div>
+    </div>
+    <div class="cc">
+      <div class="cc-t">Composição da Receita por Fonte (Realista)</div>
+      <div class="ch">
+        <canvas id="chartFontes"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MOTOR: DECISÕES -->
+<section class="sec" id="decisoes">
+  <div class="sec-t">O Motor do Crescimento — Evolução de Decisões</div>
+
+  <div class="ins" style="margin-bottom:16px;">
+    <div class="ins-t">Como decisões viram faturamento</div>
+    <div class="ins-b">Cada decisão favorável (julgado procedente) segue o caminho: <strong>Decisão → Transita em ~60 dias → Inicia CS → Pagamento em ~120 dias</strong>. Total: ~4 meses da decisão ao pagamento. As decisões de hoje entram no caixa daqui a 4 meses.</div>
+  </div>
+
+  <div class="dec-row">
+    <div class="dec-cell hist"><div class="dc-m">Set/25</div><div class="dc-v mu">67</div><div class="dc-tag">histórico</div></div>
+    <div class="dec-cell hist"><div class="dc-m">Out/25</div><div class="dc-v mu">28</div><div class="dc-tag">histórico</div></div>
+    <div class="dec-cell hist"><div class="dc-m">Nov/25</div><div class="dc-v mu">42</div><div class="dc-tag">histórico</div></div>
+    <div class="dec-cell hist"><div class="dc-m">Dez/25</div><div class="dc-v mu">31</div><div class="dc-tag">histórico</div></div>
+    <div class="dec-cell hist"><div class="dc-m">Fev/26</div><div class="dc-v g">68</div><div class="dc-tag">histórico</div></div>
+    <div class="dec-cell hist"><div class="dc-m">Abr/26</div><div class="dc-v g">74</div><div class="dc-tag">histórico</div></div>
+    <div class="dec-cell proj" style="border-style:dashed;"><div class="dc-m">Mai/26</div><div class="dc-v g">80</div><div class="dc-tag dc-arr">↗ proj.</div></div>
+    <div class="dec-cell proj" style="border-style:dashed;"><div class="dc-m">Jun/26</div><div class="dc-v g">86</div><div class="dc-tag dc-arr">↗ +8%</div></div>
+    <div class="dec-cell proj" style="border-style:dashed;"><div class="dc-m">Jul/26</div><div class="dc-v g">93</div><div class="dc-tag dc-arr">↗ +8%</div></div>
+    <div class="dec-cell proj" style="border-style:dashed;"><div class="dc-m">Ago/26</div><div class="dc-v g">101</div><div class="dc-tag dc-arr">↗ +8%</div></div>
+    <div class="dec-cell proj-hot"><div class="dc-m">Set/26</div><div class="dc-v go">114</div><div class="dc-tag" style="color:var(--gold);">↗↗ +13%</div></div>
+    <div class="dec-cell proj-hot"><div class="dc-m">Out/26</div><div class="dc-v go">129</div><div class="dc-tag" style="color:var(--gold);">↗↗ +13%</div></div>
+    <div class="dec-cell proj-hot"><div class="dc-m">Nov/26</div><div class="dc-v go">146</div><div class="dc-tag" style="color:var(--gold);">↗↗ +13%</div></div>
+    <div class="dec-cell proj-hot"><div class="dc-m">Dez/26</div><div class="dc-v go">165</div><div class="dc-tag" style="color:var(--gold);">↗↗ +13%</div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="cc">
+      <div class="cc-t">Decisões por Mês — Histórico + Projeção</div>
+      <div class="ch-sm">
+        <canvas id="chartDec"></canvas>
+      </div>
+    </div>
+    <div class="cc">
+      <div class="cc-t">Decisões de Hoje → Caixa em 4 Meses</div>
+      <div class="ch-sm">
+        <canvas id="chartFluxo"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+    <div class="cbox">
+      <div class="cbox-l">Decisões Jun–Set (proj.)</div>
+      <div class="cbox-v" style="color:var(--mdfl);">360</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Entram no caixa Out–Jan</div>
+    </div>
+    <div class="cbox">
+      <div class="cbox-l">Decisões Out–Dez (proj.)</div>
+      <div class="cbox-v" style="color:var(--gold);">440</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Entram no caixa Fev–Abr/27</div>
+    </div>
+    <div class="cbox">
+      <div class="cbox-l">Valor gerado pelas 800 decisões</div>
+      <div class="cbox-v" style="color:var(--gold);">R$ 1,9M</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">800 × R$2.800 × 85% CS</div>
+    </div>
+  </div>
+</section>
+
+<!-- FONTES -->
+<section class="sec" id="fontes">
+  <div class="sec-t">De Onde Vem o Dinheiro — 4 Fontes de Receita</div>
+
+  <div class="fonte-grid" style="margin-bottom:20px;">
+    <div class="fonte-card" style="border-color:var(--mdfl)44;">
+      <div class="fonte-icon">⚖️</div>
+      <div class="fonte-name">Pipeline Imediato</div>
+      <div class="fonte-val" style="color:var(--mdfl);">R$ 440K</div>
+      <div class="fonte-sub">79 processos prontos pagar + 92 CS · concentrado em Mai–Jun</div>
+    </div>
+    <div class="fonte-card" style="border-color:var(--real)44;">
+      <div class="fonte-icon">📋</div>
+      <div class="fonte-name">Novas Decisões→CS</div>
+      <div class="fonte-val" style="color:var(--real);">R$ 1,44M</div>
+      <div class="fonte-sub">Decisões Jan–Ago chegando ao caixa · cresce mês a mês</div>
+    </div>
+    <div class="fonte-card" style="border-color:var(--gold)44;">
+      <div class="fonte-icon">🤝</div>
+      <div class="fonte-name">Acordos</div>
+      <div class="fonte-val" style="color:var(--gold);">R$ 655K</div>
+      <div class="fonte-sub">Ciclo rápido 2–3 meses · cresce muito com MDFlow</div>
+    </div>
+    <div class="fonte-card" style="border-color:var(--purple)44;">
+      <div class="fonte-icon">⚡</div>
+      <div class="fonte-name">Recursos Julgados</div>
+      <div class="fonte-val" style="color:var(--purple);">R$ 490K</div>
+      <div class="fonte-sub">251 em recurso · ~30% julgados em 2026 = R$748K potencial</div>
+    </div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-t">Evolução da Composição da Receita ao Longo de 2026 (Realista)</div>
+    <div class="ch">
+      <canvas id="chartStack"></canvas>
+    </div>
+  </div>
+
+  <div class="ins info" style="margin-top:14px;">
+    <div class="ins-t">A transição ao longo do ano</div>
+    <div class="ins-b">Em maio, 54% da receita ainda vem do pipeline imediato (processos já prontos). Em dezembro, esse número cai para 1% — substituído pelo crescimento de novas decisões chegando ao CS (+46%) e acordos em aceleração (+32%). Isso significa que a receita de dez/2026 é quase 100% resultado de decisões novas, não de "estoque antigo". O negócio está se tornando <strong>autossuficiente e crescente</strong>.</div>
+  </div>
+</section>
+
+<!-- ACUMULADO -->
+<section class="sec" id="acumulado">
+  <div class="sec-t">Faturamento Acumulado — A Curva da Colheita</div>
+
+  <div class="cc" style="margin-bottom:16px;">
+    <div class="cc-t">Faturamento Acumulado Mai–Dez 2026 (R$)</div>
+    <div class="ch">
+      <canvas id="chartCumul"></canvas>
+    </div>
+  </div>
+
+  <div class="cumul-grid">
+    <div class="cbox"><div class="cbox-l">Acumulado até Jun/26</div><div class="cbox-v" style="color:var(--real);">R$ 696K</div><div style="font-size:11px;color:var(--mdfl);">MDFlow: R$ 801K</div></div>
+    <div class="cbox"><div class="cbox-l">Acumulado até Set/26</div><div class="cbox-v" style="color:var(--real);">R$ 1,94M</div><div style="font-size:11px;color:var(--mdfl);">MDFlow: R$ 2,71M</div></div>
+    <div class="cbox"><div class="cbox-l">Acumulado até Dez/26</div><div class="cbox-v" style="color:var(--real);">R$ 3,66M</div><div style="font-size:11px;color:var(--mdfl);">MDFlow: R$ 5,83M</div></div>
+    <div class="cbox" style="border-color:var(--gold)44;"><div class="cbox-l">Ganho extra pelo MDFlow</div><div class="cbox-v" style="color:var(--gold);">+ R$ 2,17M</div><div style="font-size:11px;color:var(--muted);">Valor do sistema em 7 meses</div></div>
+  </div>
+
+  <!-- Meta vs Projeção -->
+  <div style="margin-top:16px;background:linear-gradient(135deg,#0d1a15,#0d0d0d);border:1px solid var(--mdfl);border-radius:12px;padding:22px;">
+    <div style="font-size:15px;font-weight:700;color:var(--mdfl);margin-bottom:14px;">Meta vs Projeção MDFlow</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">META ANUAL 2026</div>
+        <div style="font-size:26px;font-weight:900;color:var(--gold);">R$ 5M+</div>
+        <div style="font-size:11px;color:var(--muted);">Baseado na jurimetria antiga</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">REALISTA (Mai–Dez)</div>
+        <div style="font-size:26px;font-weight:900;color:var(--real);">R$ 3,66M</div>
+        <div style="font-size:11px;color:var(--muted);">+ ~R$590K Jan–Abr já recebidos</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">FATOR MDFLOW (Mai–Dez)</div>
+        <div style="font-size:26px;font-weight:900;color:var(--mdfl);">R$ 5,83M</div>
+        <div style="font-size:11px;color:var(--muted);">Total 2026: ~R$ 6,4M com Jan–Abr</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">
+      Com o Fator MDFlow, o escritório ultrapassa a meta anual de R$5M e <strong style="color:var(--mdfl);">atinge R$6,4M em 2026</strong> — um crescimento de +207% sobre 2025 (R$2,08M). O mês de dezembro sozinho (R$1,2M) equivale a 7 meses do histórico médio de 2025.
+    </div>
+  </div>
+</section>
+
+<!-- PREMISSAS -->
+<section class="sec" id="premissas">
+  <div class="sec-t">Premissas e Como Isso Foi Calculado</div>
+
+  <div class="prem">
+    <div class="prem-box">
+      <div class="prem-t">Dados Reais (base de cálculo)</div>
+      <div class="prem-row"><span>Processos em carteira</span><span class="prem-val">502</span></div>
+      <div class="prem-row"><span>Procedentes aguardando CS</span><span class="prem-val">284</span></div>
+      <div class="prem-row"><span>Ticket médio histórico</span><span class="prem-val">R$ 4.971</span></div>
+      <div class="prem-row"><span>Ticket mediano</span><span class="prem-val">R$ 2.800</span></div>
+      <div class="prem-row"><span>Decisões abr/26 (último mês)</span><span class="prem-val">74/mês</span></div>
+      <div class="prem-row"><span>Fator crescimento decisões Q1-26</span><span class="prem-val">+14%/mês</span></div>
+      <div class="prem-row"><span>Receita Jan–Abr 2026</span><span class="prem-val">R$ 588K</span></div>
+    </div>
+    <div class="prem-box">
+      <div class="prem-t">Premissas da Projeção</div>
+      <div class="prem-row"><span>Crescimento decisões Jun–Set</span><span class="prem-val">+8%/mês</span></div>
+      <div class="prem-row"><span>Crescimento decisões Out–Dez</span><span class="prem-val">+13%/mês</span></div>
+      <div class="prem-row"><span>Defasagem decisão→pagamento</span><span class="prem-val">~4 meses</span></div>
+      <div class="prem-row"><span>Taxa sucesso CS</span><span class="prem-val">85%</span></div>
+      <div class="prem-row"><span>Acordos ciclo médio</span><span class="prem-val">2–3 meses</span></div>
+      <div class="prem-row"><span>Fator MDFlow (rampa)</span><span class="prem-val">0% mai → +90% dez</span></div>
+      <div class="prem-row"><span>Novos proc/mês (MDFlow)</span><span class="prem-val">2.000/mês</span></div>
+    </div>
+  </div>
+
+  <div class="ins warn" style="margin-top:14px;">
+    <div class="ins-t">O que está incluído vs excluído</div>
+    <div class="ins-b">
+      <strong>Incluído:</strong> Pipeline de 502 processos em execução, 284 procedentes aguardando CS, crescimento orgânico de decisões baseado em taxa histórica real, acordos em aceleração. <br>
+      <strong>Excluído (mas que vai adicionar):</strong> Retorno dos 10k–12k processos que serão distribuídos em Jun–Dez/2026 (esses entram no caixa a partir de Jan/2027), 251 recursos que podem ser julgados antecipadamente, parcerias MDFlow.
+    </div>
+  </div>
+</section>
+
+<div style="padding:18px 40px;border-top:1px solid var(--border);color:var(--muted);font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+  <span>MP Advogados · Previsão Faturamento Mai–Dez 2026 · CONFIDENCIAL</span>
+  <span>Gerado 18/04/2026 · Crescimento calculado sobre dados reais · Fator MDFlow baseado em meta 2k proc/mês</span>
+</div>
+
+<script>
+const R = '#3b82f6', M = '#20c997', G = '#d97706', P = '#8b5cf6';
+const tip = { backgroundColor:'#1e1e1e', titleColor:'#f0ebe3', bodyColor:'#7a7069', borderColor:'#2a2a2a', borderWidth:1 };
+const sc = { x:{ grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11}} }, y:{ grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11}} }};
+const base = () => ({ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:tip }, scales:sc });
+const fmtR = v => ' R$'+Math.round(v/1000)+'K';
+
+const MESES = ['Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const REAL  = [344000,352000,370000,415000,455000,510000,575000,640000];
+const MDFL  = [344000,457000,537000,643000,728000,867000,1035000,1216000];
+
+// Barras comparativas
+new Chart(document.getElementById('chartBars'), { type:'bar', data:{ labels:MESES,
+  datasets:[
+    { label:'Realista', data:REAL, backgroundColor:R+'55', borderColor:R, borderWidth:2, borderRadius:5 },
+    { label:'Fator MDFlow', data:MDFL, backgroundColor:M+'55', borderColor:M, borderWidth:2, borderRadius:5 }
+  ]}, options:{ ...base(), plugins:{ ...base().plugins, legend:{ display:true, labels:{color:'#7a7069',font:{size:11}} }, tooltip:{ ...tip, callbacks:{ label: c=>c.dataset.label+': R$'+Math.round(c.raw).toLocaleString('pt-BR') }}}}});
+
+// Curva histórico + projeção
+new Chart(document.getElementById('chartCurva'), { type:'line', data:{
+  labels:['Jun/25','Jul/25','Ago/25','Set/25','Out/25','Nov/25','Dez/25','Jan/26','Fev/26','Mar/26','Abr/26','Mai/26','Jun/26','Jul/26','Ago/26','Set/26','Out/26','Nov/26','Dez/26'],
+  datasets:[
+    { label:'Histórico', data:[175000,178000,190000,200000,198000,215000,210000,140000,155000,148000,145000,null,null,null,null,null,null,null,null], borderColor:R+'77', backgroundColor:R+'11', fill:true, tension:0.4, pointRadius:3, spanGaps:false },
+    { label:'Realista', data:[null,null,null,null,null,null,null,null,null,null,null,344000,352000,370000,415000,455000,510000,575000,640000], borderColor:R, backgroundColor:R+'22', fill:true, tension:0.4, pointRadius:4, borderDash:[6,3], spanGaps:false },
+    { label:'Fator MDFlow', data:[null,null,null,null,null,null,null,null,null,null,null,344000,457000,537000,643000,728000,867000,1035000,1216000], borderColor:M, backgroundColor:M+'11', fill:false, tension:0.4, pointRadius:5, spanGaps:false },
+  ]}, options:{ ...base(), plugins:{ ...base().plugins, legend:{ display:true, labels:{color:'#7a7069',font:{size:11}} }, tooltip:{ ...tip, callbacks:{ label: c=>c.dataset.label+': R$'+Math.round(c.raw||0).toLocaleString('pt-BR') }}}}});
+
+// Fontes por mês (área empilhada - realista)
+new Chart(document.getElementById('chartFontes'), { type:'doughnut', data:{
+  labels:['Pipeline Imediato','Novas Decisões→CS','Acordos','Recursos'],
+  datasets:[{ data:[440000,1444000,655000,490000], backgroundColor:[M+'88',R+'88',G+'88',P+'88'], borderWidth:0 }]
+}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{color:'#7a7069',font:{size:11},padding:12} }}}});
+
+// Decisões histórico + projeção
+new Chart(document.getElementById('chartDec'), { type:'bar', data:{
+  labels:['Set/25','Out/25','Nov/25','Dez/25','Fev/26','Abr/26','Mai/26','Jun/26','Jul/26','Ago/26','Set/26','Out/26','Nov/26','Dez/26'],
+  datasets:[
+    { label:'Histórico', data:[67,28,42,31,68,74,null,null,null,null,null,null,null,null], backgroundColor:M+'66', borderColor:M, borderWidth:2, borderRadius:4 },
+    { label:'Projeção', data:[null,null,null,null,null,null,80,86,93,101,114,129,146,165], backgroundColor:G+'66', borderColor:G, borderWidth:2, borderRadius:4 }
+  ]}, options:{ ...base(), plugins:{ ...base().plugins, legend:{ display:true, labels:{color:'#7a7069',font:{size:11}} }}}});
+
+// Fluxo decisões → caixa
+new Chart(document.getElementById('chartFluxo'), { type:'bar', data:{
+  labels:['Mai/26','Jun/26','Jul/26','Ago/26','Set/26','Out/26','Nov/26','Dez/26'],
+  datasets:[
+    { label:'Pipeline', data:[185000,120000,70000,30000,15000,10000,5000,5000], backgroundColor:M+'66', borderWidth:0, borderRadius:3 },
+    { label:'Decisões→CS', data:[119000,162000,131000,176000,190000,205000,221000,240000], backgroundColor:R+'66', borderWidth:0, borderRadius:3 },
+    { label:'Acordos', data:[25000,45000,65000,85000,100000,120000,145000,170000], backgroundColor:G+'66', borderWidth:0, borderRadius:3 },
+    { label:'Recursos', data:[15000,25000,45000,55000,65000,80000,95000,110000], backgroundColor:P+'66', borderWidth:0, borderRadius:3 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true, labels:{color:'#7a7069',font:{size:11}} }, tooltip:tip }, scales:{ x:{ stacked:true, grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11}} }, y:{ stacked:true, grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11},callback:v=>fmtR(v)} }}}});
+
+// Stack evolução fontes
+new Chart(document.getElementById('chartStack'), { type:'bar', data:{
+  labels:MESES,
+  datasets:[
+    { label:'Pipeline Imediato', data:[185000,120000,70000,30000,15000,10000,5000,5000], backgroundColor:M+'77', borderWidth:0 },
+    { label:'Novas Decisões→CS', data:[119000,162000,131000,176000,190000,205000,221000,240000], backgroundColor:R+'77', borderWidth:0 },
+    { label:'Acordos', data:[25000,45000,65000,85000,100000,120000,145000,170000], backgroundColor:G+'77', borderWidth:0 },
+    { label:'Recursos', data:[15000,25000,45000,55000,65000,80000,95000,110000], backgroundColor:P+'77', borderWidth:0 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true, labels:{color:'#7a7069',font:{size:11}} }, tooltip:tip }, scales:{ x:{ stacked:true, grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11}} }, y:{ stacked:true, grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11},callback:v=>fmtR(v)} }}}});
+
+// Acumulado
+const cumReal = REAL.reduce((a,v,i)=>{ a.push((a[i-1]||0)+v); return a; },[]);
+const cumMdfl = MDFL.reduce((a,v,i)=>{ a.push((a[i-1]||0)+v); return a; },[]);
+new Chart(document.getElementById('chartCumul'), { type:'line', data:{ labels:MESES,
+  datasets:[
+    { label:'Realista (acumulado)', data:cumReal, borderColor:R, backgroundColor:R+'22', fill:true, tension:0.4, pointRadius:4 },
+    { label:'Fator MDFlow (acumulado)', data:cumMdfl, borderColor:M, backgroundColor:M+'11', fill:false, tension:0.4, pointRadius:5 },
+    { label:'Meta R$5M', data:MESES.map(()=>5000000), borderColor:G+'55', borderDash:[6,4], borderWidth:1, pointRadius:0 }
+  ]}, options:{ ...base(), plugins:{ ...base().plugins, legend:{ display:true, labels:{color:'#7a7069',font:{size:11}} }, tooltip:{ ...tip, callbacks:{ label: c=>c.dataset.label+': R$'+Math.round(c.raw).toLocaleString('pt-BR') }}}, scales:{ ...sc, y:{ ...sc.y, ticks:{ ...sc.y.ticks, callback:v=>'R$'+Math.round(v/1000000).toFixed(1)+'M' }}}}});
+
+// Nav
+function go(id){ document.getElementById(id).scrollIntoView({behavior:'smooth'}); document.querySelectorAll('.nv').forEach(n=>n.classList.remove('on')); event.target.classList.add('on'); }
+window.addEventListener('scroll',()=>{ const ss=['meses','grafico','decisoes','fontes','acumulado','premissas'],items=document.querySelectorAll('.nv'); for(let i=ss.length-1;i>=0;i--){ const el=document.getElementById(ss[i]); if(el&&window.scrollY>=el.offsetTop-80){ items.forEach(n=>n.classList.remove('on')); items[i]&&items[i].classList.add('on'); break; }}});
+</script>
+</body>
+</html>
