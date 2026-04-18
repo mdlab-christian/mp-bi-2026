@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Previsão de Recebimento 2026 — MP Advogados</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#0d0d0d;--card:#161616;--surface:#1e1e1e;--border:#2a2a2a;
+    --fg:#f0ebe3;--muted:#7a7069;--primary:#20c997;--primary2:#17a97d;
+    --warn:#f59e0b;--danger:#ef4444;--info:#3b82f6;--purple:#8b5cf6;--gold:#d97706;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.5;}
+  h1,h2,h3{font-family:'Manrope','Inter',system-ui;font-weight:700;}
+
+  .header{background:linear-gradient(135deg,#0d1a15,#0d0d0d);border-bottom:1px solid var(--border);padding:28px 40px;}
+  .header h1{font-size:26px;color:var(--primary);margin-bottom:4px;}
+  .header p{color:var(--muted);font-size:13px;}
+  .badge{display:inline-block;padding:2px 10px;border-radius:100px;font-size:11px;font-weight:600;background:#1a3328;color:var(--primary);margin-left:6px;}
+  .badge-gold{background:#2a1f0a;color:var(--gold);}
+
+  .nav{position:sticky;top:0;z-index:50;background:#0d0d0ddd;backdrop-filter:blur(8px);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;}
+  .nav-item{padding:11px 18px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;}
+  .nav-item:hover{color:var(--fg);}
+  .nav-item.active{color:var(--primary);border-bottom-color:var(--primary);}
+
+  .section{padding:28px 40px;border-bottom:1px solid var(--border);}
+  .sec-title{font-size:17px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+  .sec-title::before{content:'';width:4px;height:20px;background:var(--primary);border-radius:2px;display:block;}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;}
+  .kpi::after{content:'';position:absolute;top:0;right:0;width:50px;height:50px;border-radius:0 12px 0 50px;opacity:.08;}
+  .kpi.g::after{background:var(--primary);} .kpi.go::after{background:var(--gold);} .kpi.b::after{background:var(--info);} .kpi.p::after{background:var(--purple);}
+  .kpi-lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+  .kpi-val{font-family:'Manrope',system-ui;font-size:26px;font-weight:800;line-height:1;margin-bottom:3px;}
+  .kpi-val.g{color:var(--primary);} .kpi-val.go{color:var(--gold);} .kpi-val.b{color:var(--info);} .kpi-val.p{color:var(--purple);} .kpi-val.r{color:var(--danger);}
+  .kpi-sub{font-size:11px;color:var(--muted);}
+
+  .charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:18px;}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+  .chart-title{font-size:13px;font-weight:600;margin-bottom:14px;color:var(--fg);}
+  .chart-h{position:relative;height:260px;}
+  .chart-sm{position:relative;height:200px;}
+
+  table{width:100%;border-collapse:collapse;}
+  th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;background:var(--surface);}
+  td{padding:9px 12px;border-bottom:1px solid #1f1f1f;font-size:13px;}
+  tr:last-child td{border-bottom:none;} tr:hover td{background:#1a1a1a;}
+  .mono{font-family:'JetBrains Mono',monospace;font-size:13px;}
+  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+  .tg{background:#1a3328;color:var(--primary);} .tgo{background:#2a1f0a;color:var(--gold);} .tb{background:#0f1f35;color:var(--info);} .tr{background:#2a1010;color:var(--danger);} .tp{background:#1e1535;color:var(--purple);}
+
+  /* Meses de previsão */
+  .months-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:20px;}
+  .month-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 8px;text-align:center;}
+  .month-box.hl{border-color:var(--primary);background:#0e1f18;}
+  .month-box .mn{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+  .month-box .mv{font-family:'Manrope',system-ui;font-size:16px;font-weight:800;color:var(--primary);line-height:1.1;}
+  .month-box .ms{font-size:10px;color:var(--muted);margin-top:2px;}
+  .month-box .mbar{height:4px;border-radius:2px;margin-top:8px;background:linear-gradient(90deg,var(--primary),var(--primary2));}
+
+  /* Evolução decisões */
+  .evo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;}
+  .evo-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
+  .evo-card .em{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .evo-card .ev{font-size:20px;font-weight:800;}
+  .evo-card.up .ev{color:var(--primary);}
+  .evo-card.peak .ev{color:var(--gold);}
+
+  /* Pipeline */
+  .pipe-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .pipe-item:last-child{border-bottom:none;}
+  .pipe-bar-wrap{flex:1;background:var(--surface);border-radius:4px;height:8px;overflow:hidden;}
+  .pipe-bar{height:100%;border-radius:4px;}
+  .pipe-lbl{width:260px;font-size:12px;}
+  .pipe-cnt{width:40px;text-align:right;font-weight:700;font-size:13px;}
+  .pipe-val{width:110px;text-align:right;font-size:12px;color:var(--muted);}
+  .pipe-prazo{width:100px;text-align:right;font-size:11px;color:var(--muted);}
+
+  .insight{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:8px;padding:14px;margin-bottom:12px;}
+  .insight.warn{border-left-color:var(--warn);}
+  .insight.info{border-left-color:var(--info);}
+  .insight.gold{border-left-color:var(--gold);}
+  .ins-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+  .ins-text{font-size:13px;line-height:1.6;}
+
+  /* Cumulativo */
+  .cuml{display:flex;gap:16px;margin-top:16px;}
+  .cuml-box{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;}
+  .cuml-lbl{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .cuml-val{font-family:'Manrope',system-ui;font-size:24px;font-weight:800;color:var(--primary);}
+
+  @media(max-width:768px){
+    .section{padding:20px 16px;}
+    .months-grid{grid-template-columns:repeat(4,1fr);}
+    .charts-grid{grid-template-columns:1fr;}
+    .cuml{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+    <div style="width:34px;height:34px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;">📈</div>
+    <div>
+      <h1>Previsão de Recebimento — Maio a Dezembro 2026</h1>
+      <p>Baseado EXCLUSIVAMENTE nos processos já em andamento · 502 na carteira executiva · 284 procedentes aguardando pagamento
+        <span class="badge">PROCESSOS PLANTADOS</span>
+        <span class="badge badge-gold">SEM novos processos</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-item active" onclick="go('previsao')">Previsão Mensal</div>
+  <div class="nav-item" onclick="go('decisoes')">Evolução de Decisões</div>
+  <div class="nav-item" onclick="go('pipeline')">Pipeline por Fase</div>
+  <div class="nav-item" onclick="go('titulos')">Títulos Executivos</div>
+  <div class="nav-item" onclick="go('reus')">Réus nas Decisões</div>
+  <div class="nav-item" onclick="go('insights')">Insights</div>
+</nav>
+
+<!-- ======= PREVISÃO ======= -->
+<section class="section" id="previsao">
+  <div class="sec-title">Previsão Mensal de Recebimento — Maio a Dezembro 2026</div>
+
+  <div class="insight gold" style="margin-bottom:20px;">
+    <div class="ins-title">Como foi calculado</div>
+    <div class="ins-text">Esta previsão considera <strong>apenas os processos já existentes</strong>: 54 aguardando pagamento, 25 aguardando alvará, 92 em fase de cumprimento de sentença (CS), 284 procedentes ainda não pagos, e 251 em fase recursal. O ticket médio real (R$4.971) e as taxas de sucesso históricas foram aplicados por fase. <strong>Nenhum processo novo foi contabilizado</strong> — isso é o que já está plantado colhendo.</div>
+  </div>
+
+  <div class="months-grid">
+    <div class="month-box hl">
+      <div class="mn">Maio</div>
+      <div class="mv">R$ 220K</div>
+      <div class="ms">Pagamentos + alvarás prontos</div>
+      <div class="mbar" style="width:45%;margin:8px auto 0;"></div>
+    </div>
+    <div class="month-box hl">
+      <div class="mn">Junho</div>
+      <div class="mv">R$ 310K</div>
+      <div class="ms">CS maduros + procedentes</div>
+      <div class="mbar" style="width:60%;margin:8px auto 0;"></div>
+    </div>
+    <div class="month-box">
+      <div class="mn">Julho</div>
+      <div class="mv">R$ 370K</div>
+      <div class="ms">CS + procedentes volume</div>
+      <div class="mbar" style="width:72%;margin:8px auto 0;"></div>
+    </div>
+    <div class="month-box">
+      <div class="mn">Agosto</div>
+      <div class="mv">R$ 420K</div>
+      <div class="ms">Pico CS + recursal rápido</div>
+      <div class="mbar" style="width:82%;margin:8px auto 0;"></div>
+    </div>
+    <div class="month-box">
+      <div class="mn">Setembro</div>
+      <div class="mv">R$ 390K</div>
+      <div class="ms">CS residual + recursal</div>
+      <div class="mbar" style="width:76%;margin:8px auto 0;"></div>
+    </div>
+    <div class="month-box">
+      <div class="mn">Outubro</div>
+      <div class="mv">R$ 350K</div>
+      <div class="ms">Recursal + suspensos</div>
+      <div class="mbar" style="width:68%;margin:8px auto 0;"></div>
+    </div>
+    <div class="month-box">
+      <div class="mn">Novembro</div>
+      <div class="mv">R$ 290K</div>
+      <div class="ms">Recursal longo</div>
+      <div class="mbar" style="width:56%;margin:8px auto 0;"></div>
+    </div>
+    <div class="month-box">
+      <div class="mn">Dezembro</div>
+      <div class="mv">R$ 260K</div>
+      <div class="ms">Recursal + restantes</div>
+      <div class="mbar" style="width:50%;margin:8px auto 0;"></div>
+    </div>
+  </div>
+
+  <div class="cuml">
+    <div class="cuml-box">
+      <div class="cuml-lbl">Total Previsto Mai–Dez 2026</div>
+      <div class="cuml-val">R$ 2,61M</div>
+    </div>
+    <div class="cuml-box">
+      <div class="cuml-lbl">Cenário Otimista (+20%)</div>
+      <div class="cuml-val" style="color:var(--gold);">R$ 3,13M</div>
+    </div>
+    <div class="cuml-box">
+      <div class="cuml-lbl">Cenário Conservador (–20%)</div>
+      <div class="cuml-val" style="color:var(--info);">R$ 2,09M</div>
+    </div>
+    <div class="cuml-box">
+      <div class="cuml-lbl">Processos gerando recebimento</div>
+      <div class="cuml-val" style="color:var(--purple);">786</div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;" class="chart-card">
+    <div class="chart-title">Curva de Recebimento Mensal — Histórico + Previsão (R$)</div>
+    <div class="chart-h">
+      <canvas id="chartCurva"></canvas>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;" class="kpi-grid">
+    <div class="kpi g">
+      <div class="kpi-lbl">Prontos para Pagar</div>
+      <div class="kpi-val g">79</div>
+      <div class="kpi-sub">Aguardando pagamento + alvará · R$393K</div>
+    </div>
+    <div class="kpi go">
+      <div class="kpi-lbl">Em CS (Cumpr. de Sentença)</div>
+      <div class="kpi-val go">92</div>
+      <div class="kpi-sub">Transito em julgado · R$457K previsto</div>
+    </div>
+    <div class="kpi b">
+      <div class="kpi-lbl">Procedentes Não Pagos</div>
+      <div class="kpi-val b">284</div>
+      <div class="kpi-sub">Decisão favorável · aguardando CS</div>
+    </div>
+    <div class="kpi p">
+      <div class="kpi-lbl">Em Recurso</div>
+      <div class="kpi-val p">251</div>
+      <div class="kpi-sub">Julgamento pendente · parte entra 2026</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======= EVOLUÇÃO DECISÕES ======= -->
+<section class="section" id="decisoes">
+  <div class="sec-title">Evolução das Decisões Procedentes — Crescimento Explosivo</div>
+
+  <div class="insight gold" style="margin-bottom:18px;">
+    <div class="ins-title">Destaque — Aceleração de Decisões em 2026</div>
+    <div class="ins-text">Em abril de 2026 foram registradas <strong>74 novas decisões procedentes</strong> em apenas 1 mês. Em fevereiro, outras 68. Isso representa uma aceleração de <strong>+140%</strong> em relação à média mensal de 2025 (33/mês). Essa explosão de decisões vai se converter em recebimentos a partir de julho/agosto de 2026 — os processos agora em CS.</div>
+  </div>
+
+  <!-- Evolução por mês -->
+  <div class="evo-grid" style="margin-bottom:20px;">
+    <div class="evo-card"><div class="em">Mai/2025</div><div class="ev" style="color:var(--muted);">2</div></div>
+    <div class="evo-card"><div class="em">Jun/2025</div><div class="ev" style="color:var(--muted);">29</div></div>
+    <div class="evo-card"><div class="em">Jul/2025</div><div class="ev" style="color:var(--muted);">32</div></div>
+    <div class="evo-card"><div class="em">Ago/2025</div><div class="ev" style="color:var(--muted);">31</div></div>
+    <div class="evo-card up"><div class="em">Set/2025</div><div class="ev">67</div></div>
+    <div class="evo-card"><div class="em">Out/2025</div><div class="ev" style="color:var(--muted);">28</div></div>
+    <div class="evo-card"><div class="em">Nov/2025</div><div class="ev" style="color:var(--muted);">42</div></div>
+    <div class="evo-card"><div class="em">Dez/2025</div><div class="ev" style="color:var(--muted);">31</div></div>
+    <div class="evo-card up"><div class="em">Fev/2026</div><div class="ev">68</div></div>
+    <div class="evo-card peak"><div class="em">Abr/2026</div><div class="ev">74</div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Decisões Procedentes por Mês (Mai/25 → Abr/26)</div>
+      <div class="chart-h">
+        <canvas id="chartDecisoes"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Projeção de Decisões → Recebimentos Futuros</div>
+      <div class="chart-sm">
+        <canvas id="chartFluxo"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <table>
+      <thead>
+        <tr><th>Período</th><th>Decisões</th><th>Média/Mês</th><th>Crescimento</th><th>Recebimento Esperado</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Jun–Dez 2025 (7m)</td><td>260</td><td>37/mês</td><td>—</td><td class="mono" style="color:var(--primary);">Jul–Dez 2026</td></tr>
+        <tr><td>Fev/2026</td><td>68</td><td>68/mês</td><td><span class="tag tg">+84%</span></td><td class="mono" style="color:var(--primary);">Ago–Set/2026</td></tr>
+        <tr><td>Abr/2026</td><td>74</td><td>74/mês</td><td><span class="tag tgo">+100% vs 2025</span></td><td class="mono" style="color:var(--gold);">Out–Nov/2026</td></tr>
+        <tr><td>Mai–Dez/2026 (projeção)</td><td>~560</td><td>70/mês</td><td><span class="tag tgo">+89% vs 2025</span></td><td class="mono" style="color:var(--gold);">Dez/2026–Jul/2027</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:12px;" class="insight info">
+    <div class="ins-title">O que esse crescimento significa financeiramente</div>
+    <div class="ins-text">74 decisões/mês × ticket médio R$4.971 × 85% taxa de sucesso CS = <strong>R$312.000 de novos títulos executivos gerados por mês</strong>. Com ciclo médio de CS de 4-6 meses, isso começa a entrar no caixa em agosto/outubro de 2026. Se a taxa de 70–80 decisões/mês se mantiver pelo resto de 2026, serão gerados entre <strong>R$1,8M e R$2,5M em novos títulos executivos</strong> só de Mai–Dez/2026.</div>
+  </div>
+</section>
+
+<!-- ======= PIPELINE ======= -->
+<section class="section" id="pipeline">
+  <div class="sec-title">Pipeline por Fase — 502 Processos em Execução</div>
+
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px;">
+    <div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--muted);">Distribuição do pipeline ativo</div>
+
+    <div class="pipe-item">
+      <div class="pipe-lbl"><span class="tag tg">AGUARDANDO PAGAMENTO</span></div>
+      <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:54%;background:var(--primary);"></div></div>
+      <div class="pipe-cnt" style="color:var(--primary);">54</div>
+      <div class="pipe-val" style="color:var(--primary);">R$ 268K</div>
+      <div class="pipe-prazo">1–2 meses</div>
+    </div>
+    <div class="pipe-item">
+      <div class="pipe-lbl"><span class="tag tg">AGUARDANDO ALVARÁ</span></div>
+      <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:25%;background:var(--primary);"></div></div>
+      <div class="pipe-cnt" style="color:var(--primary);">25</div>
+      <div class="pipe-val" style="color:var(--primary);">R$ 124K</div>
+      <div class="pipe-prazo">1–2 meses</div>
+    </div>
+    <div class="pipe-item">
+      <div class="pipe-lbl"><span class="tag tgo">FAZER CS / TRÂNSITO</span></div>
+      <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:92%;background:var(--gold);"></div></div>
+      <div class="pipe-cnt" style="color:var(--gold);">92</div>
+      <div class="pipe-val" style="color:var(--gold);">R$ 388K</div>
+      <div class="pipe-prazo">3–6 meses</div>
+    </div>
+    <div class="pipe-item">
+      <div class="pipe-lbl"><span class="tag tp">AG. JULGAMENTO RECURSO</span></div>
+      <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:100%;background:var(--purple);"></div></div>
+      <div class="pipe-cnt" style="color:var(--purple);">251</div>
+      <div class="pipe-val" style="color:var(--purple);">R$ 748K*</div>
+      <div class="pipe-prazo">8–18 meses</div>
+    </div>
+    <div class="pipe-item">
+      <div class="pipe-lbl"><span class="tag tr">SUSPENSO</span></div>
+      <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:49%;background:var(--danger);"></div></div>
+      <div class="pipe-cnt" style="color:var(--danger);">49</div>
+      <div class="pipe-val" style="color:var(--muted);">Indefinido</div>
+      <div class="pipe-prazo">Indefinido</div>
+    </div>
+    <div class="pipe-item">
+      <div class="pipe-lbl"><span class="tag tb">OUTROS (acordos, depósito)</span></div>
+      <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:22%;background:var(--info);"></div></div>
+      <div class="pipe-cnt" style="color:var(--info);">31</div>
+      <div class="pipe-val" style="color:var(--info);">R$ 154K</div>
+      <div class="pipe-prazo">1–4 meses</div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);">*Recursal: 60% de probabilidade × ticket médio × 251 processos · parte dos recursos pode ser julgada em 2026</div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Pipeline: Processos por Fase</div>
+      <div class="chart-sm">
+        <canvas id="chartPipeline"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Valor Estimado por Fase (R$)</div>
+      <div class="chart-sm">
+        <canvas id="chartValFase"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======= TÍTULOS EXECUTIVOS ======= -->
+<section class="section" id="titulos">
+  <div class="sec-title">Títulos Executivos — Crescimento do Patrimônio Jurídico</div>
+
+  <div class="insight gold" style="margin-bottom:18px;">
+    <div class="ins-title">O que são títulos executivos</div>
+    <div class="ins-text">Cada decisão favorável transita em julgado e vira um <strong>título executivo judicial</strong> — equivale a uma "nota promissória" do banco devedor. Quanto mais títulos acumulados, maior o ativo jurídico do escritório. O crescimento explosivo de decisões em 2026 está formando um patrimônio jurídico histórico.</div>
+  </div>
+
+  <div class="kpi-grid" style="margin-bottom:20px;">
+    <div class="kpi g">
+      <div class="kpi-lbl">Títulos em Execução Ativa</div>
+      <div class="kpi-val g">502</div>
+      <div class="kpi-sub">Processos em fase executiva ADVBox</div>
+    </div>
+    <div class="kpi go">
+      <div class="kpi-lbl">Novos Títulos (Abr/2026)</div>
+      <div class="kpi-val go">74</div>
+      <div class="kpi-sub">Maior mês da história · R$312K potencial</div>
+    </div>
+    <div class="kpi b">
+      <div class="kpi-lbl">Procedentes Não Pagos</div>
+      <div class="kpi-val b">284</div>
+      <div class="kpi-sub">Títulos formando-se agora</div>
+    </div>
+    <div class="kpi p">
+      <div class="kpi-lbl">Valor Total Estimado Carteira</div>
+      <div class="kpi-val p">R$ 9,5M</div>
+      <div class="kpi-sub">P50 pipeline total · ADVBox + procedentes</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Formação Acumulada de Títulos Executivos — Decisões por Mês + Acumulado</div>
+    <div class="chart-h">
+      <canvas id="chartTitulos"></canvas>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <table>
+      <thead>
+        <tr><th>Período</th><th>Novas Decisões</th><th>Acumulado</th><th>Valor Potencial Gerado</th><th>Entra no Caixa</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>2025 (mai–dez)</td><td>260</td><td>260</td><td class="mono">R$ 1,29M</td><td class="mono" style="color:var(--primary);">Nov/25–Mai/26</td></tr>
+        <tr><td>Fev/2026</td><td>68</td><td>328</td><td class="mono">R$ 338K</td><td class="mono" style="color:var(--gold);">Ago–Set/2026</td></tr>
+        <tr><td>Abr/2026</td><td>74</td><td>402</td><td class="mono">R$ 368K</td><td class="mono" style="color:var(--gold);">Out–Nov/2026</td></tr>
+        <tr><td>Mai–Dez/2026 (proj.)</td><td>~560</td><td>~962</td><td class="mono" style="color:var(--gold);">R$ 2,78M</td><td class="mono" style="color:var(--gold);">Dez/26–Jul/27</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ======= RÉUS ======= -->
+<section class="section" id="reus">
+  <div class="sec-title">Réus nas Decisões Procedentes — Quem Está Perdendo Mais</div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Top Réus por Número de Decisões Procedentes</div>
+      <div class="chart-h">
+        <canvas id="chartReusDecisoes"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Receita Esperada por Réu nas Decisões (R$)</div>
+      <div class="chart-sm">
+        <canvas id="chartReusReceita"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Réu</th><th>Decisões Procedentes</th><th>Receita Esperada (ticket mediano)</th><th>Estratégia</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Boa Vista Serviços</td><td>73</td><td class="mono" style="color:var(--primary);">R$ 204.400</td><td><span class="tag tg">Alto volume</span></td></tr>
+        <tr><td>2</td><td>Banrisul</td><td>36</td><td class="mono">R$ 100.800</td><td><span class="tag tgo">Alto ticket RS</span></td></tr>
+        <tr><td>3</td><td>Lebes Financeira</td><td>28</td><td class="mono">R$ 78.400</td><td><span class="tag tg">Crescendo</span></td></tr>
+        <tr><td>4</td><td>Mercado Pago</td><td>22</td><td class="mono" style="color:var(--gold);">R$ 61.600</td><td><span class="tag tgo">Maior ticket R$10K</span></td></tr>
+        <tr><td>5</td><td>Boticário</td><td>31</td><td class="mono">R$ 86.800</td><td><span class="tag tg">Consistente</span></td></tr>
+        <tr><td>6</td><td>Santander</td><td>16</td><td class="mono">R$ 44.800</td><td><span class="tag tb">Crescendo</span></td></tr>
+        <tr><td>7</td><td>Banco do Brasil</td><td>14</td><td class="mono">R$ 39.200</td><td><span class="tag tb">Volume</span></td></tr>
+        <tr><td>8</td><td>Itaú</td><td>13</td><td class="mono">R$ 36.400</td><td><span class="tag tb">Novo</span></td></tr>
+        <tr><td>9</td><td>Nubank</td><td>9</td><td class="mono">R$ 25.200</td><td><span class="tag tp">Fintech crescendo</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ======= INSIGHTS ======= -->
+<section class="section" id="insights">
+  <div class="sec-title">Insights Estratégicos</div>
+
+  <div class="insight gold">
+    <div class="ins-title">A virada acontece em Junho–Agosto 2026</div>
+    <div class="ins-text">Os 92 processos em CS têm prazo médio de 3–4 meses para chegar ao pagamento. Iniciando a partir de agora (abril), o pico de entrada é entre junho e agosto. Os 284 procedentes ainda não pagos devem iniciar CS imediatamente — se entrarem agora, o retorno é agosto–outubro. <strong>Junho é o mês da inflexão.</strong></div>
+  </div>
+
+  <div class="insight">
+    <div class="ins-title">Efeito Composto: decisões viram títulos viram caixa</div>
+    <div class="ins-text">Cada decisão procedente hoje segue um funil: Decisão → Trânsito em Julgado (~60 dias) → Cumprimento de Sentença iniciado → Pagamento (~90–120 dias). Com 74 decisões em abril, a cadeia está: <strong>Abril → Transita em junho → CS em julho → Pagamento em outubro/novembro</strong>. Se o ritmo de 70/mês se mantiver, chega-se ao final de 2026 com os maiores meses da história do escritório.</div>
+  </div>
+
+  <div class="insight info">
+    <div class="ins-title">Boa Vista x Mercado Pago — oportunidade de ticket</div>
+    <div class="ins-text">Boa Vista tem o maior volume de decisões (73), mas Mercado Pago tem o maior ticket médio (R$10.006 histórico). Com apenas 22 decisões, cada Mercado Pago resolvido vale 3,5× uma Boa Vista. <strong>Recomendação:</strong> priorizar CS dos Mercado Pago primeiro — impacto imediato no caixa maior por processo trabalhado.</div>
+  </div>
+
+  <div class="insight warn">
+    <div class="ins-title">251 recursos = próxima onda em 2027</div>
+    <div class="ins-text">Os 251 processos aguardando julgamento do recurso não entram nessa previsão de 2026 na maioria. Mas a cada julgamento recursal favorável, transita imediatamente e inicia CS. Se 30% deles (75 processos) forem julgados até dezembro de 2026, isso adiciona <strong>R$223K</strong> de receita surpresa ao cenário previsto. O cenário otimista (R$3,13M) incorpora parte dessa possibilidade.</div>
+  </div>
+
+  <!-- Resumo final -->
+  <div style="margin-top:20px;background:linear-gradient(135deg,#0e1f18,#0d0d0d);border:1px solid var(--primary);border-radius:12px;padding:24px;">
+    <div style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:12px;">Resumo: O que está garantido vs o que é projeção</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">PRATICAMENTE GARANTIDO</div>
+        <div style="font-size:13px;line-height:1.8;">✅ 54 aguardando pagamento → <strong>R$ 268K</strong><br>✅ 25 aguardando alvará → <strong>R$ 124K</strong><br>✅ 92 em CS → <strong>R$ 388K</strong> (3–6 meses)<br>✅ 31 outros (acordos/depósito) → <strong>R$ 154K</strong><br><br><strong style="color:var(--primary);">Subtotal: ~R$ 934K</strong></div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">ALTA PROBABILIDADE (80–85%)</div>
+        <div style="font-size:13px;line-height:1.8;">📋 284 procedentes não pagos → CS a iniciar<br>→ <strong>R$ 1.012K</strong> estimado (60–90% chegam)<br>📋 75 recursos julgados em 2026<br>→ <strong>R$ 223K</strong> extra possível<br><br><strong style="color:var(--gold);">Subtotal: ~R$ 1.235K</strong></div>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:24px;flex-wrap:wrap;">
+      <div><div style="font-size:11px;color:var(--muted);">Total conservador</div><div style="font-size:22px;font-weight:800;color:var(--info);">R$ 2,09M</div></div>
+      <div><div style="font-size:11px;color:var(--muted);">Total base</div><div style="font-size:22px;font-weight:800;color:var(--primary);">R$ 2,61M</div></div>
+      <div><div style="font-size:11px;color:var(--muted);">Total otimista</div><div style="font-size:22px;font-weight:800;color:var(--gold);">R$ 3,13M</div></div>
+    </div>
+  </div>
+</section>
+
+<div style="padding:20px 40px;border-top:1px solid var(--border);color:var(--muted);font-size:11px;display:flex;justify-content:space-between;">
+  <span>MP Advogados · Previsão de Recebimento Mai–Dez 2026 · CONFIDENCIAL</span>
+  <span>Gerado 18/04/2026 · 502 processos carteira executiva · 284 procedentes aguardando · 404 decisões analisadas</span>
+</div>
+
+<script>
+const C = Chart;
+const opt = () => ({ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1e1e1e', titleColor:'#f0ebe3', bodyColor:'#7a7069', borderColor:'#2a2a2a', borderWidth:1 }}, scales:{ x:{ grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11}} }, y:{ grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11}} }}});
+const optPie = () => ({ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#7a7069', font:{size:11}, padding:12 }}}});
+const fmtR = v => ' R$ '+Math.round(v).toLocaleString('pt-BR');
+
+// Curva histórico + previsão
+new C(document.getElementById('chartCurva'), { type:'line', data:{
+  labels:['Mai/25','Jun/25','Jul/25','Ago/25','Set/25','Out/25','Nov/25','Dez/25','Jan/26','Fev/26','Mar/26','Abr/26','Mai/26','Jun/26','Jul/26','Ago/26','Set/26','Out/26','Nov/26','Dez/26'],
+  datasets:[
+    { label:'Histórico', data:[168000,175000,178000,190000,200000,198000,215000,210000,140000,155000,148000,145000,null,null,null,null,null,null,null,null], borderColor:'#20c99777', backgroundColor:'#20c99711', fill:true, tension:0.4, pointRadius:3, spanGaps:false },
+    { label:'Previsão', data:[null,null,null,null,null,null,null,null,null,null,null,null,220000,310000,370000,420000,390000,350000,290000,260000], borderColor:'#20c997', backgroundColor:'#20c99722', fill:true, tension:0.4, pointRadius:5, pointBackgroundColor:'#20c997', borderDash:[0], spanGaps:false },
+  ]
+}, options:{ ...opt(), plugins:{ ...opt().plugins, legend:{ display:true, labels:{ color:'#7a7069', font:{size:11} }}}, scales:{ ...opt().scales, y:{ ...opt().scales.y, ticks:{ ...opt().scales.y.ticks, callback: v => 'R$'+Math.round(v/1000)+'K' }}}}});
+
+// Decisões por mês
+new C(document.getElementById('chartDecisoes'), { type:'bar', data:{
+  labels:['Mai/25','Jun/25','Jul/25','Ago/25','Set/25','Out/25','Nov/25','Dez/25','Fev/26','Abr/26'],
+  datasets:[{ data:[2,29,32,31,67,28,42,31,68,74], backgroundColor: d => d.raw >= 60 ? '#d97706aa' : '#20c99766', borderColor: d => d.raw >= 60 ? '#d97706' : '#20c997', borderWidth:2, borderRadius:5 }]
+}, options: opt()});
+
+// Fluxo decisão → recebimento
+new C(document.getElementById('chartFluxo'), { type:'bar', data:{
+  labels:['Jun/26','Jul/26','Ago/26','Set/26','Out/26','Nov/26','Dez/26'],
+  datasets:[
+    { label:'De decisões Jun/25', data:[45000,0,0,0,0,0,0], backgroundColor:'#20c99755', borderWidth:0, borderRadius:3 },
+    { label:'De decisões Set/25', data:[0,62000,58000,0,0,0,0], backgroundColor:'#20c99788', borderWidth:0, borderRadius:3 },
+    { label:'De decisões Fev/26', data:[0,0,68000,72000,0,0,0], backgroundColor:'#d9770688', borderWidth:0, borderRadius:3 },
+    { label:'De decisões Abr/26', data:[0,0,0,0,82000,78000,0], backgroundColor:'#d97706aa', borderWidth:0, borderRadius:3 },
+  ]
+}, options:{ ...opt(), plugins:{ ...opt().plugins, legend:{ display:true, labels:{ color:'#7a7069', font:{size:11} }}}, scales:{ x:{ stacked:true, grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11}} }, y:{ stacked:true, grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11}, callback: v=>'R$'+Math.round(v/1000)+'K' }}}}});
+
+// Pipeline qtd
+new C(document.getElementById('chartPipeline'), { type:'doughnut', data:{
+  labels:['Ag. Recurso (251)','CS/Trânsito (92)','Ag. Pagamento (54)','Suspenso (49)','Ag. Alvará (25)','Outros (31)'],
+  datasets:[{ data:[251,92,54,49,25,31], backgroundColor:['#8b5cf677','#d9770677','#20c99788','#ef444466','#20c997aa','#3b82f666'], borderWidth:0 }]
+}, options: optPie()});
+
+// Pipeline valor
+new C(document.getElementById('chartValFase'), { type:'bar', data:{
+  labels:['CS/Trânsito','Ag.Pagamento','Ag.Alvará','Recursal','Outros'],
+  datasets:[{ data:[388000,268000,124000,748000,154000], backgroundColor:['#d9770688','#20c99788','#20c997bb','#8b5cf677','#3b82f666'], borderColor:['#d97706','#20c997','#20c997','#8b5cf6','#3b82f6'], borderWidth:2, borderRadius:5 }]
+}, options:{ ...opt(), plugins:{ ...opt().plugins, tooltip:{ ...opt().plugins.tooltip, callbacks:{ label: ctx=>fmtR(ctx.raw) }}}}});
+
+// Títulos executivos acumulados
+new C(document.getElementById('chartTitulos'), { type:'bar', data:{
+  labels:['Mai/25','Jun/25','Jul/25','Ago/25','Set/25','Out/25','Nov/25','Dez/25','Jan/26','Fev/26','Mar/26','Abr/26','Mai/26','Jun/26','Jul/26','Ago/26'],
+  datasets:[
+    { type:'bar', label:'Novas Decisões', data:[2,29,32,31,67,28,42,31,0,68,0,74,70,72,68,75], backgroundColor:'#20c99755', borderColor:'#20c997', borderWidth:2, borderRadius:4, yAxisID:'y' },
+    { type:'line', label:'Acumulado', data:[2,31,63,94,161,189,231,262,262,330,330,404,474,546,614,689], borderColor:'#d97706', backgroundColor:'transparent', pointRadius:3, tension:0.3, yAxisID:'y1' }
+  ]
+}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true, labels:{ color:'#7a7069', font:{size:11} }}, tooltip:{ backgroundColor:'#1e1e1e', titleColor:'#f0ebe3', bodyColor:'#7a7069', borderColor:'#2a2a2a', borderWidth:1 }}, scales:{ x:{ grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11}} }, y:{ grid:{color:'#1f1f1f'}, ticks:{color:'#7a7069',font:{size:11}}, position:'left', title:{display:true,text:'Decisões/mês',color:'#20c997',font:{size:10}} }, y1:{ grid:{display:false}, ticks:{color:'#d97706',font:{size:11}}, position:'right', title:{display:true,text:'Acumulado',color:'#d97706',font:{size:10}} } }}});
+
+// Réus decisões
+new C(document.getElementById('chartReusDecisoes'), { type:'bar', data:{
+  labels:['Boa Vista','Boticário','Banrisul','Lebes','Mercado Pago','Santander','BB','Itaú','CEF','Nubank'],
+  datasets:[{ data:[73,31,36,28,22,16,14,13,8,9], backgroundColor:'#20c99766', borderColor:'#20c997', borderWidth:2, borderRadius:4 }]
+}, options: opt()});
+
+// Réus receita esperada
+new C(document.getElementById('chartReusReceita'), { type:'bar', data:{
+  labels:['Boa Vista','Boticário','Banrisul','Lebes','Mercado Pago','Santander','BB'],
+  datasets:[{ data:[204400,86800,100800,78400,61600,44800,39200], backgroundColor: ctx => ctx.dataIndex===4?'#d9770688':'#20c99755', borderColor: ctx => ctx.dataIndex===4?'#d97706':'#20c997', borderWidth:2, borderRadius:4 }]
+}, options:{ ...opt(), plugins:{ ...opt().plugins, tooltip:{ ...opt().plugins.tooltip, callbacks:{ label: ctx=>fmtR(ctx.raw) }}}}});
+
+// Nav scroll
+function go(id) {
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  event.target.classList.add('active');
+}
+window.addEventListener('scroll', () => {
+  const ss = ['previsao','decisoes','pipeline','titulos','reus','insights'];
+  const items = document.querySelectorAll('.nav-item');
+  for(let i=ss.length-1;i>=0;i--){
+    const el=document.getElementById(ss[i]);
+    if(el&&window.scrollY>=el.offsetTop-80){items.forEach(n=>n.classList.remove('active'));items[i]&&items[i].classList.add('active');break;}
+  }
+});
+</script>
+</body>
+</html>
